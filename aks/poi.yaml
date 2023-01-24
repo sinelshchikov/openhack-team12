@@ -1,0 +1,39 @@
+# poi.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poi
+spec:
+  selector: 
+    matchLabels: 
+      app: poi
+  template:
+    metadata:
+      labels:
+        app: poi
+    spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      containers:
+        - image: registryhrh2972.azurecr.io/tripinsights/poi:1.0
+          name: poi
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+          - name: SQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: sql
+                key: sqluser
+          - name: SQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: sql
+                key: sqlpassword
+          - name: SQL_SERVER
+            value: sqlserverhrh2972.database.windows.net
+          - name: SQL_DBNAME
+            value: mydrivingDB
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Development"                                
