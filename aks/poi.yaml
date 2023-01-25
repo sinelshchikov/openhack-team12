@@ -21,20 +21,31 @@ spec:
           ports:
             - containerPort: 80
               name: http
+          volumeMounts:
+          - name: secrets-store01-inline
+            mountPath: "/secrets"
+            readOnly: true                        
           env:
           - name: SQL_USER
             valueFrom:
               secretKeyRef:
-                name: sql
+                name: sqluser
                 key: sqluser
           - name: SQL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: sql
-                key: sqlpassword
+                name: sqlpassword
+                key: sqlpassword      
           - name: SQL_SERVER
             value: sqlserverhrh2972.database.windows.net
           - name: SQL_DBNAME
             value: mydrivingDB
           - name: ASPNETCORE_ENVIRONMENT
-            value: "Development"                                
+            value: "Development"
+      volumes:
+        - name: secrets-store01-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-kvname-user-msi"                                            

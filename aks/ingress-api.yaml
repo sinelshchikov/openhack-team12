@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-api
+  namespace: api
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: frontend.13.85.199.190.nip.io
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: poi-service
+                port:
+                  number: 80
+            path: /api/poi
+          - pathType: Prefix
+            backend:
+              service:
+                name: userprofile-service
+                port:
+                  number: 80
+            path: /api/user
+          - pathType: Prefix
+            backend:
+              service:
+                name: user-java-service
+                port:
+                  number: 80
+            path: /api/user-java
+          - pathType: Prefix
+            backend:
+              service:
+                name: trips-service
+                port:
+                  number: 80
+            path: /api/trips
+
+
+            
+    # This section is only required if TLS is to be enabled for the Ingress
+    # tls:
+    #   - hosts:
+    #     - www.example.com
+    #     secretName: example-tls
