@@ -11,7 +11,7 @@ az aks create \
     --name $CLUSTER_NAME \
     --node-count 2 \
     --generate-ssh-keys \
-    --node-vm-size Standard_B2s \
+    --node-vm-size Standard_D8s_v3 \
     --network-plugin azure \
     --vnet-subnet-id /subscriptions/f23ec1a2-c46f-49fd-a66a-40d273192a7a/resourceGroups/teamResources/providers/Microsoft.Network/virtualNetworks/vnet/subnets/vm-subnet \
     --attach-acr registryhrh2972 \
@@ -99,3 +99,35 @@ helm repo update
 helm install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress \
   --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz
+
+
+# Challange 5 Monitoring and Alerts
+
+az monitor log-analytics workspace create --resource-group $RESOURCE_GROUP \
+    --workspace-name team12law
+
+az aks enable-addons -a monitoring -n $CLUSTER_NAME -g $RESOURCE_GROUP --enable-msi-auth-for-monitoring \
+--workspace-resource-id "/subscriptions/f23ec1a2-c46f-49fd-a66a-40d273192a7a/resourceGroups/teamResources/providers/Microsoft.OperationalInsights/workspaces/team12law"
+
+# Creating Promethius and Grafana instances via Azure Portal... ( not working)
+
+
+kubectl port-forward service/insurance 28015:80
+
+az aks update \
+    --resource-group $RESOURCE_GROUP \
+    --name $CLUSTER_NAME \
+    --node-vm-size Standard_D8s_v3
+
+az aks update --enable-azuremonitormetrics -n $CLUSTER_NAME -g $RESOURCE_GROUP \
+--azure-monitor-workspace-resource-id "/subscriptions/f23ec1a2-c46f-49fd-a66a-40d273192a7a/resourceGroups/teamResources/providers/microsoft.monitor/accounts/team12prometheus" \
+--grafana-resource-id  "/subscriptions/f23ec1a2-c46f-49fd-a66a-40d273192a7a/resourceGroups/teamResources/providers/Microsoft.Dashboard/grafana/team12grafana"
+
+# prometheus via Helm ( working)
+
+kubectl create namespace monitoring
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+helm install prometheus  prometheus-community/kube-prometheus-stack   --namespace monitoring
+kubectl get all -n monitoring
