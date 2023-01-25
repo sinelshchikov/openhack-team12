@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: userprofile
+  namespace: api
 spec:
   selector: 
     matchLabels: 
@@ -11,6 +12,7 @@ spec:
     metadata:
       labels:
         app: userprofile
+        namespace: api
     spec:
       nodeSelector:
         kubernetes.io/os: linux
