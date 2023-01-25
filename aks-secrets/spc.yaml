@@ -1,0 +1,35 @@
+# This is a SecretProviderClass example using user-assigned identity to access your key vault
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-kvname-user-msi
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"          # Set to true for using managed identity
+    userAssignedIdentityID: "79fde42e-a3ab-4ab6-bc91-dbfc1f491390"  # Set the clientID of the user-assigned managed identity to use
+    keyvaultName: team12akskv             # Set to the name of your key vault
+    cloudName: ""                         # [OPTIONAL for Azure] if not provided, the Azure environment defaults to AzurePublicCloud
+    objects:  |
+      array:
+        - |
+          objectName: sqluser
+          objectType: secret              # object types: secret, key, or cert
+          objectVersion: ""               # [OPTIONAL] object versions, default to latest if empty
+        - |
+          objectName: sqlpassword
+          objectType: secret
+          objectVersion: ""
+    tenantId: 05943c2a-656a-4257-a6a2-4499cfecf805                 # The tenant ID of the key vault
+  secretObjects:                             
+  - secretName: sqluser   
+    data:
+    - key: sqluser                          
+      objectName: sqluser                                        
+    type: Opaque
+  - secretName: sqlpassword  
+    data:
+    - key: sqlpassword                          
+      objectName: sqlpassword                                        
+    type: Opaque

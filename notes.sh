@@ -41,6 +41,7 @@ kubectl port-forward service/trips-service 28015:80
 kubectl port-forward service/userprofile-service 28015:80
 kubectl port-forward service/user-java-service 28015:80
 kubectl port-forward service/poi-service 28015:80
+kubectl port-forward service/tripviewer-service 28015:80
 
 # Challange #3
 
@@ -66,3 +67,35 @@ az role assignment create \
 web-deb / WebSecureUser@345#$%
 
 az aks get-credentials --name $CLUSTER_NAME --resource-group $RESOURCE_GROUP --overwrite-existing
+
+# Challange 4
+
+# Create KV
+export KVNAME="team12akskv"
+az keyvault create --name $KVNAME --resource-group $RESOURCE_GROUP --location $LOCATION
+
+az aks update \
+-n $CLUSTER_NAME \
+-g $RESOURCE_GROUP \
+--enable-managed-identity
+
+az aks enable-addons \
+--addons azure-keyvault-secrets-provider \
+-n $CLUSTER_NAME \
+-g $RESOURCE_GROUP
+
+aksid=$(az aks show -g $RESOURCE_GROUP -n $CLUSTER_NAME --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId -o tsv)
+
+az keyvault set-policy -n $KVNAME --secret-permissions get --spn $aksid
+
+kubectl -n api exec -it poi-6546984796-dgqfp -- /bin/sh
+
+# Ingress
+kubectl create namespace ingress
+
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress \
+  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz
